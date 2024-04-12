@@ -1,6 +1,8 @@
 file(GLOB_RECURSE RayTracing_SRC LIST_DIRECTORIES false src/*.cpp)
 
-add_executable(RayTracing ${RayTracing_SRC})
+add_executable(RayTracing ${RayTracing_SRC}
+        src/Renderer.cpp
+        src/Renderer.h)
 target_include_directories(RayTracing PRIVATE src)
 target_link_libraries(RayTracing PRIVATE Walnut)
 
