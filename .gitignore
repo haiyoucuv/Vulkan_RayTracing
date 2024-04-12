@@ -1,0 +1,18 @@
+# Directories
+.vs/
+bin/
+bin-int/
+*build*/
+
+# Files
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
+*.sln
+
+vendor/GLFW
+vendor/glm
+vendor/imgui
+
+# Exclude
+!vendor/bin
