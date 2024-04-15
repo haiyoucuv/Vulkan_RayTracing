@@ -40,16 +40,15 @@ public:
         ImGui::End();
         ImGui::PopStyleVar();
 
+        Timer timer;
+        Render();
+        m_LastRenderTime = timer.ElapsedMillis();
+
     }
 
     void Render() {
-
-        Timer timer;
-
         m_Renderer.OnResize(m_vWidth, m_vHeight);
         m_Renderer.Render();
-
-        m_LastRenderTime = timer.ElapsedMillis();
     }
 
 private:
