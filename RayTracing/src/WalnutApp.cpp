@@ -12,7 +12,10 @@ public:
     void OnUIRender() override {
 
         ImGui::Begin("Settings");
-        ImGui::Text("Last Render Time: %.2fms", m_LastRenderTime);
+        ImGui::Text("Fps: %.0ffps", 1000 / m_dt);
+        ImGui::Text("Logic Time: %.2fms", m_logicTime);
+        ImGui::Text("Render Time: %.2fms", m_renderTime);
+        ImGui::Text("Total Time: %.2fms", m_logicTime + m_renderTime);
 
         if (ImGui::Button("Render")) {
             Render();
@@ -27,9 +30,9 @@ public:
         m_vWidth = uint32_t(ImGui::GetContentRegionAvail().x);
         m_vHeight = uint32_t(ImGui::GetContentRegionAvail().y);
 
-        std::shared_ptr<Walnut::Image> image = m_Renderer.GetImage();
+        std::shared_ptr<Walnut::Image> image = m_renderer.GetImage();
 
-        if (m_Renderer.GetImage()) {
+        if (m_renderer.GetImage()) {
             ImGui::Image(
                 image->GetDescriptorSet(),
                 ImVec2(float(image->GetWidth()), float(image->GetHeight())),
@@ -40,24 +43,37 @@ public:
         ImGui::End();
         ImGui::PopStyleVar();
 
-        Timer timer;
         Render();
-        m_LastRenderTime = timer.ElapsedMillis();
 
     }
 
     void Render() {
-        m_Renderer.OnResize(m_vWidth, m_vHeight);
-        m_Renderer.Render();
+
+        float now = m_timer.ElapsedMillis();
+        m_dt = now - m_lastT;
+        m_lastT = now;
+
+        m_renderer.OnResize(m_vWidth, m_vHeight);
+
+        m_renderer.Update(m_dt / 1000);
+        m_logicTime = m_timer.ElapsedMillis() - now;
+
+        m_renderer.Render();
+        m_renderTime = m_timer.ElapsedMillis() - now - m_logicTime;
+
     }
 
 private:
-    Renderer m_Renderer;
+    Renderer m_renderer;
 
     uint32_t m_vWidth = 0;
     uint32_t m_vHeight = 0;
 
-    float m_LastRenderTime = 0.0f;
+    Timer m_timer;
+    float m_lastT = 0.0f;
+    float m_dt = 0.0f;
+    float m_logicTime = 0.0f;
+    float m_renderTime = 0.0f;
 };
 
 Walnut::Application *Walnut::CreateApplication(int argc, char **argv) {
