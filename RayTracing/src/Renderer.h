@@ -9,6 +9,7 @@
 #include "Walnut/Random.h"
 #include "Camera.h"
 #include "Ray.h"
+#include "Scene.h"
 #include <iostream>
 #include <memory>
 #include <glm/glm.hpp>
@@ -18,27 +19,21 @@ class Renderer {
 public:
     Renderer() = default;
 
-    glm::vec3 m_sphereCenter = glm::vec3(0.0f, 0.0f, -1.0f);
-    float m_radius = 0.5f;
-
-    glm::vec3 m_lightPos = glm::vec3(0.0f, 0.2f, 0.0f);
-
-    glm::vec3 m_lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+    glm::vec3 m_lightPos = glm::vec3(0.0f, 0.0f, 0.0f);
 
     void OnResize(uint32_t width, uint32_t height);
 
     void Update(float dt);
 
-    void Render(const Camera &m_camera);
+    void Render(const Scene &scene, const Camera &camera);
 
     std::shared_ptr<Walnut::Image> GetImage() const { return m_image; };
 
 private:
-    glm::vec4 TraceRay(const Ray &ray);
-
-private:
     std::shared_ptr<Walnut::Image> m_image;
     uint32_t *m_imageData = nullptr;
+
+    glm::vec4 TraceRay(const Ray &ray, const Scene &scene);
 };
 
 

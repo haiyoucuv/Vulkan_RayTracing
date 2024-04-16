@@ -33,21 +33,22 @@ void Renderer::OnResize(uint32_t width, uint32_t height) {
     m_imageData = new uint32_t[width * height * 4];
 }
 
-void Renderer::Render(const Camera &m_camera) {
+void Renderer::Render(const Scene &scene, const Camera &camera) {
 
 
     uint32_t width = m_image->GetWidth();
     uint32_t height = m_image->GetHeight();
 
     Ray ray{};
-    ray.origin = m_camera.GetPosition();
+    ray.origin = camera.GetPosition();
 
     glm::vec2 resolution = glm::vec2(float(width), float(height));
+
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            ray.direction = m_camera.GetRayDirections()[x + y * width];
+            ray.direction = camera.GetRayDirections()[x + y * width];
 
-            glm::vec4 color = TraceRay(ray);
+            glm::vec4 color = TraceRay(ray, scene);
             m_imageData[x + y * width] = Utils::ConvertToRGBA(color);
         }
     }
@@ -67,43 +68,66 @@ void Renderer::Update(float dt) {
 
 }
 
-glm::vec4 Renderer::TraceRay(const Ray &ray) {
-    // rayDir = glm::normalize(rayDir);
 
-    // (bx^2 + by^2 + bz^2)t^2 + 2(axbx + ayby + azbz)t + (ax^2 + ay^2 + az^2 - r^2) = 0
-    // a = bx^2 + by^2 + bz^2;
-    // b = 2(axbx + ayby + azbz)
-    // c = ax^2 + ay^2 + az^2 - r^2
+glm::vec4 Renderer::TraceRay(const Ray &ray, const Scene &scene) {
 
-    glm::vec3 ro = ray.origin - m_sphereCenter;
-    float a = glm::dot(ray.direction, ray.direction);;
-    float b = 2.0f * glm::dot(ro, ray.direction);
-    float c = glm::dot(ro, ro) - m_radius * m_radius;
+    if (scene.spheres.empty()) {
+        return glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
+    }
 
-    // b^2 - 4ac
-    float discriminant = b * b - 4.0f * a * c;
+    const Sphere *nearestSphere = nullptr;
+    float hitDistance = std::numeric_limits<float>::max();
 
-    if (discriminant >= 0) {
+
+    for (const auto &sphere: scene.spheres) {
+
+        // (bx^2 + by^2 + bz^2)t^2 + 2(axbx + ayby + azbz)t + (ax^2 + ay^2 + az^2 - r^2) = 0
+        // a = bx^2 + by^2 + bz^2;
+        // b = 2(axbx + ayby + azbz)
+        // c = ax^2 + ay^2 + az^2 - r^2
+        glm::vec3 ro = ray.origin - sphere.position;
+        float a = glm::dot(ray.direction, ray.direction);;
+        float b = 2.0f * glm::dot(ro, ray.direction);
+        float c = glm::dot(ro, ro) - sphere.radius * sphere.radius;
+
+        // b^2 - 4ac
+        float discriminant = b * b - 4.0f * a * c;
+
+        if (discriminant < 0.0f) {
+            continue;
+        }
 
         float sqrtDiscriminant = glm::sqrt(discriminant);
         float a2 = 2.0f * a;
 
-        float t0 = (sqrtDiscriminant - b) / a2;
+        // float t0 = (sqrtDiscriminant - b) / a2;
         float t1 = (-b - sqrtDiscriminant) / a2;
 
-        glm::vec3 hitPos = ray.origin + ray.direction * t1;
+        if (t1 < hitDistance && t1 >= 0) {
+            hitDistance = t1;
+            nearestSphere = &sphere;
+        }
 
-        glm::vec3 normal = glm::normalize(hitPos - m_sphereCenter);
-        // normal = normal * 0.5f + 0.5f;
+    }
 
-        glm::vec3 lightDir = glm::normalize(hitPos - m_lightPos);
-        float d = glm::dot(normal, -lightDir);
-
-        glm::vec3 color = glm::vec3(1.0f) * d;
-
-        return glm::vec4(color, 1.0f);
-    } else {
+    if (nearestSphere == nullptr) {
         return glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
     }
+
+    // std::cout << hitDistance << std::endl;
+
+    glm::vec3 ro = ray.origin - nearestSphere->position;
+
+    glm::vec3 hitPos = ro + ray.direction * hitDistance;
+
+    glm::vec3 normal = glm::normalize(hitPos - nearestSphere->position);
+
+    glm::vec3 lightDir = glm::normalize(m_lightPos - hitPos);
+    // glm::vec3 lightDir = glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f));
+    float d = glm::dot(normal, -lightDir);
+
+    glm::vec3 color = nearestSphere->albedo * d;
+
+    return glm::vec4(color, 1.0f);
 
 }

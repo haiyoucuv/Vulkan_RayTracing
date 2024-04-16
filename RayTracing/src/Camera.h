@@ -18,7 +18,7 @@ public:
     const glm::mat4& GetView() const { return m_View; }
     const glm::mat4& GetInverseView() const { return m_InverseView; }
 
-    const glm::vec3& GetPosition() const { return m_Position; }
+    const glm::vec3& GetPosition() const { return m_position; }
     const glm::vec3& GetDirection() const { return m_ForwardDirection; }
 
     const std::vector<glm::vec3>& GetRayDirections() const { return m_RayDirections; }
@@ -38,7 +38,7 @@ private:
     float m_NearClip = 0.1f;
     float m_FarClip = 100.0f;
 
-    glm::vec3 m_Position{0.0f, 0.0f, 0.0f};
+    glm::vec3 m_position{0.0f, 0.0f, -1.0f};
     glm::vec3 m_ForwardDirection{0.0f, 0.0f, 0.0f};
 
     // Cached ray directions

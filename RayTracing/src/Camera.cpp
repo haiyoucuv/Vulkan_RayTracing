@@ -12,7 +12,7 @@ Camera::Camera(float verticalFOV, float nearClip, float farClip)
     : m_VerticalFOV(verticalFOV), m_NearClip(nearClip), m_FarClip(farClip)
 {
     m_ForwardDirection = glm::vec3(0, 0, -1);
-    m_Position = glm::vec3(0, 0, 6);
+    m_position = glm::vec3(0, 0, 6);
 }
 
 bool Camera::OnUpdate(float ts)
@@ -39,32 +39,32 @@ bool Camera::OnUpdate(float ts)
     // Movement
     if (Input::IsKeyDown(KeyCode::W))
     {
-        m_Position += m_ForwardDirection * speed * ts;
+        m_position += m_ForwardDirection * speed * ts;
         moved = true;
     }
     else if (Input::IsKeyDown(KeyCode::S))
     {
-        m_Position -= m_ForwardDirection * speed * ts;
+        m_position -= m_ForwardDirection * speed * ts;
         moved = true;
     }
     if (Input::IsKeyDown(KeyCode::A))
     {
-        m_Position -= rightDirection * speed * ts;
+        m_position -= rightDirection * speed * ts;
         moved = true;
     }
     else if (Input::IsKeyDown(KeyCode::D))
     {
-        m_Position += rightDirection * speed * ts;
+        m_position += rightDirection * speed * ts;
         moved = true;
     }
     if (Input::IsKeyDown(KeyCode::Q))
     {
-        m_Position -= upDirection * speed * ts;
+        m_position -= upDirection * speed * ts;
         moved = true;
     }
     else if (Input::IsKeyDown(KeyCode::E))
     {
-        m_Position += upDirection * speed * ts;
+        m_position += upDirection * speed * ts;
         moved = true;
     }
 
@@ -115,7 +115,7 @@ void Camera::RecalculateProjection()
 
 void Camera::RecalculateView()
 {
-    m_View = glm::lookAt(m_Position, m_Position + m_ForwardDirection, glm::vec3(0, 1, 0));
+    m_View = glm::lookAt(m_position, m_position + m_ForwardDirection, glm::vec3(0, 1, 0));
     m_InverseView = glm::inverse(m_View);
 }
 
