@@ -4,11 +4,17 @@
 #include "Walnut/Image.h"
 #include "Walnut/Timer.h"
 #include "Renderer.h"
+#include "Camera.h"
 
 using namespace Walnut;
 
 class RayTracing : public Walnut::Layer {
+
 public:
+    RayTracing()
+        : m_camera(45.0f, 0.1f, 100.0f) {
+    }
+
     void OnUIRender() override {
 
         ImGui::Begin("Settings");
@@ -43,28 +49,34 @@ public:
         ImGui::End();
         ImGui::PopStyleVar();
 
-        Render();
-
-    }
-
-    void Render() {
 
         float now = m_timer.ElapsedMillis();
         m_dt = now - m_lastT;
         m_lastT = now;
 
-        m_renderer.OnResize(m_vWidth, m_vHeight);
-
-        m_renderer.Update(m_dt / 1000);
+        Update(m_dt / 1000);
         m_logicTime = m_timer.ElapsedMillis() - now;
 
-        m_renderer.Render();
+        Render();
         m_renderTime = m_timer.ElapsedMillis() - now - m_logicTime;
 
     }
 
+    void Update(float dt) {
+        m_camera.OnUpdate(dt);
+        m_renderer.Update(dt);
+    }
+
+    void Render() {
+        m_camera.OnResize(m_vWidth, m_vHeight);
+        m_renderer.OnResize(m_vWidth, m_vHeight);
+        m_renderer.Render(m_camera);
+    }
+
 private:
     Renderer m_renderer;
+
+    Camera m_camera;
 
     uint32_t m_vWidth = 0;
     uint32_t m_vHeight = 0;

@@ -33,18 +33,21 @@ void Renderer::OnResize(uint32_t width, uint32_t height) {
     m_imageData = new uint32_t[width * height * 4];
 }
 
-void Renderer::Render() {
+void Renderer::Render(const Camera &m_camera) {
+
 
     uint32_t width = m_image->GetWidth();
     uint32_t height = m_image->GetHeight();
 
+    Ray ray{};
+    ray.origin = m_camera.GetPosition();
+
     glm::vec2 resolution = glm::vec2(float(width), float(height));
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            glm::vec2 coord = {float(x), float(y)};
-            // coord = coord * 2.0f - 1.0f;
-            coord = (coord * 2.0f - resolution) / float(height);
-            glm::vec4 color = PerPixel(coord);
+            ray.direction = m_camera.GetRayDirections()[x + y * width];
+
+            glm::vec4 color = TraceRay(ray);
             m_imageData[x + y * width] = Utils::ConvertToRGBA(color);
         }
     }
@@ -55,21 +58,16 @@ void Renderer::Render() {
 float dir = 1;
 
 void Renderer::Update(float dt) {
-
-    m_lightPos.x += dt * dir;
-    if (m_lightPos.x >= 2) {
-        dir = -1;
-    } else if (m_lightPos.x <= -2) {
-        dir = 1;
-    }
+    // m_lightPos.x += dt * dir;
+    // if (m_lightPos.x >= 2) {
+    //     dir = -1;
+    // } else if (m_lightPos.x <= -2) {
+    //     dir = 1;
+    // }
 
 }
 
-glm::vec3 rayOrigin = glm::vec3(0.0f, 0.0f, 1.0f);
-
-glm::vec4 Renderer::PerPixel(glm::vec2 coord) {
-
-    glm::vec3 rayDir = glm::vec3(coord.x, coord.y, -1.0f);
+glm::vec4 Renderer::TraceRay(const Ray &ray) {
     // rayDir = glm::normalize(rayDir);
 
     // (bx^2 + by^2 + bz^2)t^2 + 2(axbx + ayby + azbz)t + (ax^2 + ay^2 + az^2 - r^2) = 0
@@ -77,9 +75,9 @@ glm::vec4 Renderer::PerPixel(glm::vec2 coord) {
     // b = 2(axbx + ayby + azbz)
     // c = ax^2 + ay^2 + az^2 - r^2
 
-    glm::vec3 ro = rayOrigin - m_sphereCenter;
-    float a = glm::dot(rayDir, rayDir);;
-    float b = 2.0f * glm::dot(ro, rayDir);
+    glm::vec3 ro = ray.origin - m_sphereCenter;
+    float a = glm::dot(ray.direction, ray.direction);;
+    float b = 2.0f * glm::dot(ro, ray.direction);
     float c = glm::dot(ro, ro) - m_radius * m_radius;
 
     // b^2 - 4ac
@@ -93,7 +91,7 @@ glm::vec4 Renderer::PerPixel(glm::vec2 coord) {
         float t0 = (sqrtDiscriminant - b) / a2;
         float t1 = (-b - sqrtDiscriminant) / a2;
 
-        glm::vec3 hitPos = rayOrigin + rayDir * t1;
+        glm::vec3 hitPos = ray.origin + ray.direction * t1;
 
         glm::vec3 normal = glm::normalize(hitPos - m_sphereCenter);
         // normal = normal * 0.5f + 0.5f;
@@ -105,7 +103,7 @@ glm::vec4 Renderer::PerPixel(glm::vec2 coord) {
 
         return glm::vec4(color, 1.0f);
     } else {
-        return glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        return glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
     }
 
 }

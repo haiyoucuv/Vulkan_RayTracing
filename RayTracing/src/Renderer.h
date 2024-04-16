@@ -7,6 +7,8 @@
 
 #include "Walnut/Image.h"
 #include "Walnut/Random.h"
+#include "Camera.h"
+#include "Ray.h"
 #include <iostream>
 #include <memory>
 #include <glm/glm.hpp>
@@ -27,12 +29,12 @@ public:
 
     void Update(float dt);
 
-    void Render();
+    void Render(const Camera &m_camera);
 
     std::shared_ptr<Walnut::Image> GetImage() const { return m_image; };
 
 private:
-    glm::vec4 PerPixel(glm::vec2 coord);
+    glm::vec4 TraceRay(const Ray &ray);
 
 private:
     std::shared_ptr<Walnut::Image> m_image;
